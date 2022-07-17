@@ -1,0 +1,44 @@
+plugins {
+    id 'application'
+}
+
+group 'de.hhu.bigdata'
+version '1.0'
+
+mainClassName = 'de.hhu.bigdata.project.EntryPoint'
+
+sourceCompatibility = '15'
+targetCompatibility = '15'
+
+compileJava.options.encoding = 'UTF-8'
+javadoc.options.encoding = 'UTF-8'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    // Apache Beam
+    implementation 'org.apache.beam:beam-sdks-java-core:2.26.0'
+    implementation 'org.apache.beam:beam-runners-direct-java:2.26.0'
+
+    // Logging
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'ch.qos.logback:logback-classic:1.2.3'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.16'
+    testCompileOnly 'org.projectlombok:lombok:1.18.16'
+    annotationProcessor 'org.projectlombok:lombok:1.18.16'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+
+    // Others
+    compile 'joda-time:joda-time:2.10.8'
+
+}
+
+wrapper {
+    gradleVersion = '6.7'
+}
+
