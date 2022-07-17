@@ -10,7 +10,7 @@ import org.apache.beam.sdk.values.PDone;
 import org.apache.beam.sdk.values.TypeDescriptors;
 
 
-public class GroupRecoveredByAgeGroupAndMonth {
+public class GroupRecoveredByAgeGroupAndDay {
 
     public static PDone calculate(PCollection<String> input) {
 
@@ -20,7 +20,7 @@ public class GroupRecoveredByAgeGroupAndMonth {
                         .via(line -> {
                             var fields = line.split(",");
                             var altersgruppe = fields[4];
-                            var meldedatum = fields[8].substring(5, 7); // just get the month
+                            var meldedatum = fields[8];
                             var anzahlGenesen = Integer.parseInt(fields[16]);
                             var neuGenesen = Integer.parseInt(fields[15]);
 
