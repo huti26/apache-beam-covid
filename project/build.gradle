@@ -7,8 +7,8 @@ version '1.0'
 
 mainClassName = 'hutan.EntryPoint'
 
-sourceCompatibility = '15'
-targetCompatibility = '15'
+sourceCompatibility = '11'
+targetCompatibility = '11'
 
 compileJava.options.encoding = 'UTF-8'
 javadoc.options.encoding = 'UTF-8'
@@ -20,21 +20,21 @@ repositories {
 dependencies {
 
     // Apache Beam
-    implementation 'org.apache.beam:beam-sdks-java-core:2.26.0'
-    implementation 'org.apache.beam:beam-runners-direct-java:2.26.0'
+    implementation 'org.apache.beam:beam-sdks-java-core:2.39.0'
+    implementation 'org.apache.beam:beam-runners-direct-java:2.39.0'
 
     // Logging
-    implementation 'org.slf4j:slf4j-api:1.7.30'
-    implementation 'ch.qos.logback:logback-classic:1.2.3'
+    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'ch.qos.logback:logback-classic:1.2.11'
 
     // Lombok
-    compileOnly 'org.projectlombok:lombok:1.18.16'
-    testCompileOnly 'org.projectlombok:lombok:1.18.16'
-    annotationProcessor 'org.projectlombok:lombok:1.18.16'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    testCompileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
 
     // Others
-    compile 'joda-time:joda-time:2.10.8'
+    compile 'joda-time:joda-time:2.10.14'
 
 }
 
