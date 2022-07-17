@@ -23,6 +23,10 @@ dependencies {
     implementation 'org.apache.beam:beam-sdks-java-core:2.39.0'
     implementation 'org.apache.beam:beam-runners-direct-java:2.39.0'
 
+    // Spark
+//    implementation 'org.apache.beam:beam-runners-spark-3:2.40.0'
+//    implementation 'org.apache.spark:spark-core_2.12:3.3.0'
+
     // Logging
     implementation 'org.slf4j:slf4j-api:1.7.36'
     implementation 'ch.qos.logback:logback-classic:1.2.11'
