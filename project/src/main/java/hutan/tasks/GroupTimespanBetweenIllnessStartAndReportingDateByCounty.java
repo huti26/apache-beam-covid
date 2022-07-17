@@ -1,4 +1,4 @@
-package de.hhu.bigdata.project.tasks;
+package hutan.tasks;
 
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.transforms.*;
@@ -15,7 +15,7 @@ import java.io.Serializable;
 import java.util.Comparator;
 
 
-public class Exe3a {
+public class GroupTimespanBetweenIllnessStartAndReportingDateByCounty {
 
     public static PDone calculate(PCollection<String> input) {
 
@@ -48,7 +48,7 @@ public class Exe3a {
                 .apply("Convert key value pairs to strings",
                         MapElements.into(TypeDescriptors.strings()).via(element -> element.getKey() + "," + element.getValue()))
                 .apply("Write to file",
-                        TextIO.write().to("exe3a").withoutSharding());
+                        TextIO.write().to("pipeline_results/timespan_between_illness_and_reporting_date_by_county.csv").withoutSharding());
 
     }
 

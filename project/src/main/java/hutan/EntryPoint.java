@@ -1,6 +1,6 @@
-package de.hhu.bigdata.project;
+package hutan;
 
-import de.hhu.bigdata.project.tasks.*;
+import hutan.tasks.*;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.options.Description;
@@ -34,13 +34,13 @@ public class EntryPoint {
                 "Read all lines from input file",
                 TextIO.read().from(options.getInput()));
 
-//        Exe1.calculate(input);
-//        Exe2a.calculate(input);
-        Exe2b.calculate(input);
-//        Exe3a.calculate(input);
-//        Exe3b.calculate(input);
-//        Exe4a.calculate(input);
-//        Exe4b.calculate(input);
+        GroupCasesByCounty.calculate(input);
+        GroupDeathsByDay.calculate(input);
+        GroupDeathsByAgeGroup.calculate(input);
+        GroupTimespanBetweenIllnessStartAndReportingDateByCounty.calculate(input);
+        GroupDeathsOfPersonsUnderAgeOf80ByCounty.calculate(input);
+        GroupCasesBySex.calculate(input);
+        GroupRecoveredByAgeGroupAndMonth.calculate(input);
 
         pipeline.run().waitUntilFinish();
     }

@@ -1,4 +1,4 @@
-package de.hhu.bigdata.project.tasks;
+package hutan.tasks;
 
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.transforms.*;
@@ -10,7 +10,7 @@ import org.apache.beam.sdk.values.TypeDescriptors;
 import java.util.ArrayList;
 
 
-public class Exe2b {
+public class GroupDeathsByAgeGroup {
 
     public static PDone calculate(PCollection<String> input) {
 
@@ -142,7 +142,7 @@ public class Exe2b {
                 )
 
                 .apply("Write to file",
-                        TextIO.write().to("exe2b").withoutSharding());
+                        TextIO.write().to("pipeline_results/deaths_by_age_group.csv").withoutSharding());
 
 
     }

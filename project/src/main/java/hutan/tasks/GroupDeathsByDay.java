@@ -1,4 +1,4 @@
-package de.hhu.bigdata.project.tasks;
+package hutan.tasks;
 
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.transforms.*;
@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.util.Comparator;
 
 
-public class Exe2a {
+public class GroupDeathsByDay {
 
     public static PDone calculate(PCollection<String> input) {
 
@@ -37,7 +37,7 @@ public class Exe2a {
                 .apply("Convert key value pairs to strings",
                         MapElements.into(TypeDescriptors.strings()).via(element -> element.getKey() + ";" + element.getValue()))
                 .apply("Write to file",
-                        TextIO.write().to("exe2a").withoutSharding());
+                        TextIO.write().to("pipeline_results/deaths_per_day.csv").withoutSharding());
 
     }
 

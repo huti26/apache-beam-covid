@@ -1,4 +1,4 @@
-package de.hhu.bigdata.project.tasks;
+package hutan.tasks;
 
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.transforms.Filter;
@@ -10,7 +10,7 @@ import org.apache.beam.sdk.values.PDone;
 import org.apache.beam.sdk.values.TypeDescriptors;
 
 
-public class Exe4b {
+public class GroupRecoveredByAgeGroupAndMonth {
 
     public static PDone calculate(PCollection<String> input) {
 
@@ -37,7 +37,7 @@ public class Exe4b {
                 .apply("Convert key value pairs to strings",
                         MapElements.into(TypeDescriptors.strings()).via(element -> element.getKey() + "," + element.getValue()))
                 .apply("Write to file",
-                        TextIO.write().to("exe4b").withoutSharding());
+                        TextIO.write().to("pipeline_results/recovered_by_age_group.csv").withoutSharding());
 
     }
 

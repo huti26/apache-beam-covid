@@ -2,10 +2,10 @@ plugins {
     id 'application'
 }
 
-group 'de.hhu.bigdata'
+group 'hutan'
 version '1.0'
 
-mainClassName = 'de.hhu.bigdata.project.EntryPoint'
+mainClassName = 'hutan.EntryPoint'
 
 sourceCompatibility = '15'
 targetCompatibility = '15'

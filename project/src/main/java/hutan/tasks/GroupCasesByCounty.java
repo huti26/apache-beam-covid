@@ -1,4 +1,4 @@
-package de.hhu.bigdata.project.tasks;
+package hutan.tasks;
 
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.transforms.Filter;
@@ -10,7 +10,7 @@ import org.apache.beam.sdk.values.PDone;
 import org.apache.beam.sdk.values.TypeDescriptors;
 
 
-public class Exe1 {
+public class GroupCasesByCounty {
 
     public static PDone calculate(PCollection<String> input) {
 
@@ -32,7 +32,7 @@ public class Exe1 {
                 .apply("Convert key value pairs to strings",
                         MapElements.into(TypeDescriptors.strings()).via(element -> element.getKey() + ";" + element.getValue()))
                 .apply("Write to file",
-                        TextIO.write().to("exe1").withoutSharding());
+                        TextIO.write().to("pipeline_results/cases_by_county.csv").withoutSharding());
 
     }
 
