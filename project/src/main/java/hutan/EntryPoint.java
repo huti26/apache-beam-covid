@@ -7,6 +7,8 @@ import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.Validation;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 
 public class EntryPoint {
 
@@ -34,6 +36,7 @@ public class EntryPoint {
                 "Read all lines from input file",
                 TextIO.read().from(options.getInput()));
 
+
         GroupCasesByCounty.calculate(input);
         GroupDeathsByDay.calculate(input);
         GroupDeathsByAgeGroup.calculate(input);
@@ -42,9 +45,15 @@ public class EntryPoint {
         GroupCasesBySex.calculate(input);
         GroupRecoveredByAgeGroupAndMonth.calculate(input);
 
+        var start = DateTime.now();
         pipeline.run().waitUntilFinish();
-    }
+        var end = DateTime.now();
 
+        var period = new Period(start, end);
+        System.out.println(period);
+
+
+    }
 
 
 }
