@@ -37,13 +37,12 @@ public class EntryPoint {
                 TextIO.read().from(options.getInput()));
 
 
-//        GroupCasesByCounty.calculate(input);
-//        GroupDeathsByDay.calculate(input);
-        GroupDeathsByAgeGroup.calculate(input);
-//        GroupTimespanBetweenIllnessStartAndReportingDateByCounty.calculate(input);
-//        GroupDeathsOfPersonsUnderAgeOf80ByCounty.calculate(input);
-//        GroupCasesBySex.calculate(input);
-//        GroupRecoveredByAgeGroupAndDay.calculate(input);
+        SumCasesByCounty.calculate(input);
+        FindTheTenDaysWithMostDeaths.calculate(input);
+        FindTopThreeTimeDifferenceMeansBetweenIllnessStartAndReportDateByCounty.calculate(input);
+        SumDeathsOfPersonsUnderAgeOf80ByCounty.calculate(input);
+        SumCasesBySex.calculate(input);
+        SumRecoveredByAgeGroupAndDay.calculate(input);
 
         var start = DateTime.now();
         pipeline.run().waitUntilFinish();
