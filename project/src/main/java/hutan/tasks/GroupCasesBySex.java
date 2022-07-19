@@ -15,25 +15,22 @@ public class GroupCasesBySex {
     public static PDone calculate(PCollection<String> input) {
 
         return input
-                .apply("Extract fields 5:geschlecht & 6:anzahlFall & 12 neuerFall",
-                        MapElements.into(TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.strings()))
+                .apply("Extract fields: KV(12:neuerFall, 5:geschlecht + , + 6:anzahlFall)",
+                        MapElements
+                                .into(TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.strings()))
                                 .via(line -> {
                                     var fields = line.split(",");
-                                    var geschlecht = fields[5];
-                                    var anzahlFall = fields[6];
-                                    var neuerFall = Integer.parseInt(fields[12]);
-                                    return KV.of(neuerFall, geschlecht + "," + anzahlFall);
+                                    return KV.of(Integer.parseInt(fields[12]), fields[5] + "," + fields[6]);
                                 }))
                 .apply("Remove non new cases", Filter.by(element -> element.getKey() >= 0))
                 .apply("Convert key value pairs to strings",
                         MapElements.into(TypeDescriptors.strings()).via(element -> element.getKey() + "," + element.getValue()))
-                .apply("Remove neuerFall",
-                        MapElements.into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
+                .apply("Remove neuerFall:  KV(1:geschlecht, 2:anzahlFall)",
+                        MapElements
+                                .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
                                 .via(line -> {
                                     var fields = line.split(",");
-                                    var geschlecht = fields[1];
-                                    var anzahlFall = Integer.parseInt(fields[2]);
-                                    return KV.of(geschlecht, anzahlFall);
+                                    return KV.of(fields[1], Integer.parseInt(fields[2]));
                                 }))
                 .apply("Sum the amount of cases", Sum.integersPerKey())
                 .apply("Convert key value pairs to strings",
