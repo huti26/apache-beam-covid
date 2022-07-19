@@ -53,5 +53,5 @@ g <-
 
 print(g)
 
-ggsave("cases_by_county.png", width = 8.37, height = 6, dpi = 300)
+# ggsave("cases_by_county.png", width = 8.37, height = 6, dpi = 300)
 
