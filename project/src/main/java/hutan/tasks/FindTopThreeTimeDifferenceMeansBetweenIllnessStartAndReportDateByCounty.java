@@ -41,14 +41,13 @@ public class FindTopThreeTimeDifferenceMeansBetweenIllnessStartAndReportDateByCo
                                 "KV(17:istErkrankungsbeginn, KV(2:bundesland, KV(8:meldedatum,14:refDatum))) -> KV(bundesland, time_difference)",
                         MapElements
                                 .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
-                                .via(element -> {
-                                    // calculateDifferencesBetweenTwoDates(refDatum, meldedatum)
-                                    var time_difference = calculateDifferencesBetweenTwoDates(
-                                            element.getValue().getValue().getValue(),
-                                            element.getValue().getValue().getKey()
-                                    );
-                                    return KV.of(element.getValue().getKey(), time_difference);
-                                }))
+                                .via(element -> KV.of(
+                                        element.getValue().getKey(),
+                                        calculateDifferencesBetweenTwoDates(
+                                                element.getValue().getValue().getValue(), // refDatum
+                                                element.getValue().getValue().getKey() // meldeDatum
+                                        )
+                                )))
                 .apply("Calculate average time difference between illness start and illness report",
                         Mean.perKey())
                 .apply("Filter for top 3 counties with biggest average time difference between illness start and illness report",

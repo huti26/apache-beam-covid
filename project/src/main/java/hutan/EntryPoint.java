@@ -38,11 +38,12 @@ public class EntryPoint {
 
 
         SumCasesByCounty.calculate(input);
+        SumCasesBySex.calculate(input);
         FindTheTenDaysWithMostDeaths.calculate(input);
+        SumRecoveredByAgeGroupAndDay.calculate(input);
+
         FindTopThreeTimeDifferenceMeansBetweenIllnessStartAndReportDateByCounty.calculate(input);
         SumDeathsOfPersonsUnderAgeOf80ByCounty.calculate(input);
-        SumCasesBySex.calculate(input);
-        SumRecoveredByAgeGroupAndDay.calculate(input);
 
         var start = DateTime.now();
         pipeline.run().waitUntilFinish();
