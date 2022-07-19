@@ -15,35 +15,58 @@ public class SumDeathsOfPersonsUnderAgeOf80ByCounty {
     public static PDone calculate(PCollection<String> input) {
 
         return input
-                .apply("Extract fields: String(4:altersgruppe + , + 2:bundesland + , + 7:anzahlTodesfall + , + 13:neuerTodesfall)",
+                .apply("KV(4:altersgruppe, KV(13:neuerTodesfall, KV(2:bundesland, 7:anzahlTodesfall)))",
                         MapElements
-                                .into(TypeDescriptors.strings())
+                                .into(TypeDescriptors.kvs(
+                                                TypeDescriptors.strings(),
+                                                TypeDescriptors.kvs(
+                                                        TypeDescriptors.integers(),
+                                                        TypeDescriptors.kvs(
+                                                                TypeDescriptors.strings(),
+                                                                TypeDescriptors.integers()
+                                                        )
+                                                )
+                                        )
+                                )
                                 .via(line -> {
                                     var fields = line.split(",");
-                                    return fields[4] + "," + fields[2] + "," + fields[7] + "," + fields[13];
+                                    return KV.of(
+                                            fields[4],
+                                            KV.of(
+                                                    Integer.parseInt(fields[13]),
+                                                    KV.of(
+                                                            fields[2],
+                                                            Integer.parseInt(fields[7])
+                                                    )
+                                            )
+                                    );
                                 }))
                 .apply("Filter over 80 and unbekannt",
-                        Filter.by(line -> !line.startsWith("A80+") && !line.startsWith("unbekannt")))
-                .apply("Remove altersgruppe, create KV to filter by neuerTodesfall: KV(3:neuerTodesfall, 1:bundesland + , + 2:anzahlTodesfall)",
+                        Filter.by(element -> !element.getKey().startsWith("A80+") && !element.getKey().startsWith("unbekannt")))
+                .apply("Remove altersgruppe: KV(altersgruppe, KV(neuerTodesfall, KV(bundesland, anzahlTodesfall))) -> " +
+                                "KV(neuerTodesfall, KV(bundesland, anzahlTodesfall))",
                         MapElements
-                                .into(TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.strings()))
-                                .via(line -> {
-                                    var fields = line.split(",");
-                                    return KV.of(Integer.parseInt(fields[3]), fields[1] + "," + fields[2]);
-                                }))
+                                .into(TypeDescriptors.kvs(
+                                                TypeDescriptors.integers(),
+                                                TypeDescriptors.kvs(
+                                                        TypeDescriptors.strings(),
+                                                        TypeDescriptors.integers()
+                                                )
+                                        )
+                                )
+                                .via(element -> KV.of(
+                                        element.getValue().getKey(),
+                                        KV.of(
+                                                element.getValue().getValue().getKey(),
+                                                element.getValue().getValue().getValue()
+                                        )
+                                )))
                 .apply("Remove non new cases",
                         Filter.by(element -> element.getKey() >= 0))
-                .apply("Convert key value pairs to strings: String(neuerTodesfall,bundesland,anzahlTodesfall)",
-                        MapElements
-                                .into(TypeDescriptors.strings())
-                                .via(element -> element.getKey() + "," + element.getValue()))
-                .apply("Remove neuerTodesfall, create KV to sum: KV(1:bundesland, 2:anzahlTodesfall)",
+                .apply("Remove neuerTodessfall: KV(neuerTodesfall, KV(bundesland, anzahlTodesfall)) -> KV(bundesland, anzahlTodesfall)",
                         MapElements
                                 .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
-                                .via(line -> {
-                                    var fields = line.split(",");
-                                    return KV.of(fields[1], Integer.parseInt(fields[2]));
-                                }))
+                                .via(element -> KV.of(element.getValue().getKey(), element.getValue().getValue())))
                 .apply("Sum the amount of cases",
                         Sum.integersPerKey())
                 .apply("Convert key value pairs to strings: String(bundesland,sum(anzahlTodesfall))",
