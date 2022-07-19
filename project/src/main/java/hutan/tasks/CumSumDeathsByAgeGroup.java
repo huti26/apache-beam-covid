@@ -27,16 +27,19 @@ public class CumSumDeathsByAgeGroup {
                 .apply("Remove non new cases", Filter.by(element -> element.getKey() >= 0))
                 .apply("Convert key value pairs to strings",
                         MapElements.into(TypeDescriptors.strings()).via(element -> element.getKey() + "," + element.getValue()))
-                .apply("Extract fields: KV(1:meldedatum + , + 3:altersgruppe, 2:anzahlTodesfall)",
+                .apply("KV(1:meldedatum + , + 3:altersgruppe, 2:anzahlTodesfall)",
                         MapElements
                                 .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
                                 .via(line -> {
                                     var fields = line.split(",");
                                     return KV.of(fields[1] + "," + fields[2], Integer.parseInt(fields[3]));
                                 }))
-                .apply("Sum the amount of cases", Sum.integersPerKey())
-                .apply("Convert key value pairs to strings",
-                        MapElements.into(TypeDescriptors.strings()).via(element -> element.getKey() + "," + element.getValue()))
+                .apply("Sum the amount of cases",
+                        Sum.integersPerKey())
+                .apply("KV(meldedatum + , + altersgruppe, sum(anzahlTodesfall)) -> String(meldedatum,altersgruppe,sum(anzahlTodesfall))",
+                        MapElements
+                                .into(TypeDescriptors.strings())
+                                .via(element -> element.getKey() + "," + element.getValue()))
                 .apply("Transform to: KV(1:Altersgruppe + , + MeldeJahr MeldeMonat, KV(MeldeTag, 2:AnzahlTodesfall)",
                         MapElements
                                 .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.integers())))
@@ -50,7 +53,8 @@ public class CumSumDeathsByAgeGroup {
                                             )
                                     );
                                 }))
-                .apply("Group days per agegroup,year,month; value is an iterable of KV(day, deaths)", GroupByKey.create())
+                .apply("Group days per agegroup,year,month; value is an iterable of KV(day, deaths)",
+                        GroupByKey.create())
                 .apply("KV.of(0:ageGroup + , + year, KV.of(month, dayIterable))",
                         MapElements
                                 .into(
@@ -80,15 +84,17 @@ public class CumSumDeathsByAgeGroup {
 
                                 )
                 )
-                .apply("Group days per agegroup,year", GroupByKey.create())
+                .apply("Group days per agegroup,year -> get iterable for months",
+                        GroupByKey.create())
                 .apply("Calculate cumsum",
-                        FlatMapElements.into(TypeDescriptors.strings())
+                        FlatMapElements
+                                .into(TypeDescriptors.strings())
                                 .via(element -> {
                                     var agegroupYear = element.getKey();
                                     var monthsIterable = element.getValue();
 
                                     // arrays start at 0, months start at 1
-                                    // get month sizes
+                                    // get month sizes, check how many elements are in the dayIterable
                                     var monthSizes = new int[13];
                                     for (var month : monthsIterable) {
                                         var monthNumber = month.getKey();
@@ -152,8 +158,7 @@ public class CumSumDeathsByAgeGroup {
 
     public static int calculateMonthSize(Iterable<KV<Integer, Integer>> days) {
         var monthSize = 0;
-        for (var day :
-                days) {
+        for (var day : days) {
             var dayNumber = day.getKey();
             if (dayNumber > monthSize) {
                 monthSize = dayNumber;

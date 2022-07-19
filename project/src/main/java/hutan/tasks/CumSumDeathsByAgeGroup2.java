@@ -124,30 +124,35 @@ public class CumSumDeathsByAgeGroup2 {
                                     var yearsIterable = element.getValue();
                                     var output = new ArrayList<String>();
 
+                                    // calculate cumsum for each year
+                                    // starting with month 1, ending with month 12
+                                    // years 2020 2021 2022
+                                    var dailyDeathsPerMonthPerYear = new int[3][13][];
+
+                                    // determine how many days we have values for for each month in each year
+                                    var monthSizes = new int[3][13];
+
                                     for (var yearIterable : yearsIterable) {
                                         var currentYear = yearIterable.getKey();
                                         var monthsIterable = yearIterable.getValue();
 
                                         // arrays start at 0, months start at 1
                                         // get month sizes
-                                        var monthSizes = new int[13];
                                         for (var month : monthsIterable) {
                                             var monthNumber = month.getKey();
                                             var daysIterable = month.getValue();
-                                            monthSizes[monthNumber] = calculateMonthSize(daysIterable);
+                                            monthSizes[currentYear][monthNumber] = calculateMonthSize(daysIterable);
                                         }
 
-                                        // calculate cumsum for each month, starting with month 1, ending with month 12
-                                        var dailyDeathsPerMonth = new int[13][];
+                                        // cumsum on month basis
                                         var lastMonthCumsum = 0;
-
                                         for (int currentMonth = 1; currentMonth <= 12; currentMonth++) {
                                             for (var month : monthsIterable) {
                                                 var monthNumber = month.getKey();
 
                                                 if (monthNumber == currentMonth) {
                                                     var daysIterable = month.getValue();
-                                                    var currentMonthSize = monthSizes[monthNumber];
+                                                    var currentMonthSize = monthSizes[currentYear][monthNumber];
 
                                                     var deaths = calculateMonthCumSum(
                                                             daysIterable,
@@ -158,7 +163,7 @@ public class CumSumDeathsByAgeGroup2 {
                                                     // cumsum per month is the value of the last date of a month
                                                     lastMonthCumsum = deaths[currentMonthSize];
 
-                                                    dailyDeathsPerMonth[monthNumber] = deaths;
+                                                    dailyDeathsPerMonthPerYear[currentYear][monthNumber] = deaths;
 
                                                 }
                                             }
@@ -167,8 +172,63 @@ public class CumSumDeathsByAgeGroup2 {
                                         // create output by iterating through dailyDeathsPerMonth
 //                                        var output = new ArrayList<String>();
 
+
+                                    }
+
+                                    // At this point, each year has a correct cumsum, but it does not consider the years prior
+                                    // For each completed year, we have data for the 31.12.YEAR
+                                    // We take this value and add it to all values of the next year
+                                    // Once we don't have such a value, we have found our last year in our data and don't need to do anything
+                                    var last_years_deaths = 0;
+                                    for (int year = 2020; year <= 2022; year++) {
+
+                                        // add last_years_deaths to current year
+                                        if (last_years_deaths != 0) {
+                                            for (int month = 1; month <= 12; month++) {
+                                                var currentMonthSize = monthSizes[year][month];
+                                                for (int day = 0; day <= currentMonthSize; day++) {
+                                                    dailyDeathsPerMonthPerYear[year][month][day] += last_years_deaths;
+                                                }
+
+                                            }
+                                        }
+
+                                        // if last year was finished, continue
+                                        if (dailyDeathsPerMonthPerYear[year][12].length == 32) {
+                                            last_years_deaths = dailyDeathsPerMonthPerYear[year][12][31];
+                                        } else {
+                                            break;
+                                        }
+                                    }
+
+//                                    for(int currentYear = 2020; currentYear <= 2022; currentYear++){
+//                                        for (int currentMonth = 12; currentMonth >= 1; currentMonth--) {
+//                                            var dailyDeaths = dailyDeathsPerMonthPerYear[currentYear][currentMonth];
+//                                            if(dailyDeaths != null){
+//                                                // find last day meassured in year
+//                                                for(var dailyDeath : dailyDeaths){
+//                                                    if
+//                                                }
+//
+//                                                for(int day=31;day >=1;day--){
+//                                                    if( dailyDeaths[day] != null){
+//
+//                                                    }
+//                                                }
+//
+//                                                var last_day = monthSizes[currentYear][currentMonth];
+//                                            }
+//
+//                                        }
+//                                    }
+
+
+                                    // Create Output
+                                    for (var yearIterable : yearsIterable) {
+                                        var currentYear = yearIterable.getKey();
+
                                         for (int currentMonth = 1; currentMonth <= 12; currentMonth++) {
-                                            var dailyDeaths = dailyDeathsPerMonth[currentMonth];
+                                            var dailyDeaths = dailyDeathsPerMonthPerYear[currentYear][currentMonth];
 
                                             if (dailyDeaths != null) {
                                                 for (int day = 1; day < dailyDeaths.length; day++) {
@@ -176,11 +236,9 @@ public class CumSumDeathsByAgeGroup2 {
                                                     output.add(agegroup + "/" + currentYear + "/" + currentMonth + "/" + dayFormatted + "," + dailyDeaths[day]);
                                                 }
                                             }
-
-
                                         }
-
                                     }
+
 
                                     return output;
                                 })
