@@ -19,23 +19,35 @@ public class FindTopThreeTimeDifferenceMeansBetweenIllnessStartAndReportDateByCo
     public static PDone calculate(PCollection<String> input) {
 
         return input
-                .apply("String(17:istErkrankungsbeginn,2:bundesland,8:meldedatum,14:refDatum)",
+                .apply("KV(17:istErkrankungsbeginn, KV(2:bundesland, KV(8:meldedatum,14:refDatum)))",
                         MapElements
-                                .into(TypeDescriptors.strings())
+                                .into(TypeDescriptors.kvs(
+                                        TypeDescriptors.strings(),
+                                        TypeDescriptors.kvs(
+                                                TypeDescriptors.strings(),
+                                                TypeDescriptors.kvs(
+                                                        TypeDescriptors.strings(),
+                                                        TypeDescriptors.strings()
+                                                )
+                                        )
+                                ))
                                 .via(line -> {
                                     var fields = line.split(",");
-                                    return fields[17] + "," + fields[2] + "," + fields[8] + "," + fields[14];
+                                    return KV.of(fields[17], KV.of(fields[2], KV.of(fields[8], fields[14])));
                                 }))
                 .apply("Filter unknown starts of illness",
-                        Filter.by(line -> line.startsWith("1")))
-                .apply("Calculate difference between start of illness and report of illness: KV(1:bundesland, time_difference)",
+                        Filter.by(element -> element.getKey().startsWith("1")))
+                .apply("Calculate difference between start of illness and report of illness: " +
+                                "KV(17:istErkrankungsbeginn, KV(2:bundesland, KV(8:meldedatum,14:refDatum))) -> KV(bundesland, time_difference)",
                         MapElements
                                 .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
-                                .via(line -> {
-                                    var fields = line.split(",");
-                                    // calculateDifferencesBetweenTwoDates(3:refDatum, 2:meldedatum)
-                                    var time_difference = calculateDifferencesBetweenTwoDates(fields[3], fields[2]);
-                                    return KV.of(fields[1], time_difference);
+                                .via(element -> {
+                                    // calculateDifferencesBetweenTwoDates(refDatum, meldedatum)
+                                    var time_difference = calculateDifferencesBetweenTwoDates(
+                                            element.getValue().getValue().getValue(),
+                                            element.getValue().getValue().getKey()
+                                    );
+                                    return KV.of(element.getValue().getKey(), time_difference);
                                 }))
                 .apply("Calculate average time difference between illness start and illness report",
                         Mean.perKey())
