@@ -16,20 +16,23 @@ public class FindTheTenDaysWithMostDeaths {
     public static PDone calculate(PCollection<String> input) {
 
         return input
-                .apply("Extract fields: KV(13:neuerTodesfall, KV(8:meldedatum, 7:anzahlTodesfall)",
+                .apply("Extract fields: KV(13:neuerTodesfall, KV(8:meldedatum, 7:anzahlTodesfall))",
                         MapElements
                                 .into(TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers())))
                                 .via(line -> {
                                     var fields = line.split(",");
                                     return KV.of(Integer.parseInt(fields[13]), KV.of(fields[8], Integer.parseInt(fields[7])));
                                 }))
-                .apply("Remove non new cases", Filter.by(element -> element.getKey() >= 0))
-                .apply("Unnest KV -> Remove neuerFall field",
+                .apply("Remove non new cases",
+                        Filter.by(element -> element.getKey() >= 0))
+                .apply("Remove neuerFall field: KV(13:neuerTodesfall, KV(8:meldedatum, 7:anzahlTodesfall)) -> KV(8:meldedatum, 7:anzahlTodesfall)",
                         MapElements
                                 .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
                                 .via(element -> KV.of(element.getValue().getKey(), element.getValue().getValue())))
-                .apply("Sum the amount of cases", Sum.integersPerKey())
-                .apply(Top.of(10, new CompareCount()))
+                .apply("Sum the amount of deaths",
+                        Sum.integersPerKey())
+                .apply("Filter to 10 days with most deaths",
+                        Top.of(10, new CompareCount()))
                 .apply("Extract key value pairs",
                         FlatMapElements
                                 .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
