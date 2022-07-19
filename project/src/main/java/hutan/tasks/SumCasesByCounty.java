@@ -10,7 +10,7 @@ import org.apache.beam.sdk.values.PDone;
 import org.apache.beam.sdk.values.TypeDescriptors;
 
 
-public class GroupCasesByCounty {
+public class SumCasesByCounty {
 
     public static PDone calculate(PCollection<String> input) {
 

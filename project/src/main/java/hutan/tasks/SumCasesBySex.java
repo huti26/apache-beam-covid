@@ -10,7 +10,7 @@ import org.apache.beam.sdk.values.PDone;
 import org.apache.beam.sdk.values.TypeDescriptors;
 
 
-public class GroupCasesBySex {
+public class SumCasesBySex {
 
     public static PDone calculate(PCollection<String> input) {
 
