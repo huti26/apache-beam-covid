@@ -10,67 +10,72 @@ import org.apache.beam.sdk.values.TypeDescriptors;
 import java.util.ArrayList;
 
 
-public class GroupDeathsByAgeGroup {
+public class CumSumDeathsByAgeGroup {
 
     public static PDone calculate(PCollection<String> input) {
 
         // 2020/12/06
         // 0123456789
         return input
-                .apply("Extract fields 8:meldedatum & 7:anzahlTodesfall & 4:altersgruppe & 13:neueTodesfall",
-                        MapElements.into(TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.strings()))
+                .apply("Extract fields: KV(13:neuerTodesfall, 8:meldedatum + , + 4:altersgruppe + , + 7:anzahlTodesfall)",
+                        MapElements
+                                .into(TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.strings()))
                                 .via(line -> {
                                     var fields = line.split(",");
-                                    var meldedatum = fields[8];
-                                    var altersgruppe = fields[4];
-                                    var anzahlTodesfall = fields[7];
-                                    var neuerTodesfall = Integer.parseInt(fields[13]);
-                                    return KV.of(neuerTodesfall, meldedatum + "," + altersgruppe + "," + anzahlTodesfall);
+                                    return KV.of(Integer.parseInt(fields[13]), fields[8] + "," + fields[4] + "," + fields[7]);
                                 }))
                 .apply("Remove non new cases", Filter.by(element -> element.getKey() >= 0))
                 .apply("Convert key value pairs to strings",
                         MapElements.into(TypeDescriptors.strings()).via(element -> element.getKey() + "," + element.getValue()))
-                .apply("Extract fields 1:meldedatum & 2:anzahlTodesfall & 3:altersgruppe",
-                        MapElements.into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
+                .apply("Extract fields: KV(1:meldedatum + , + 3:altersgruppe, 2:anzahlTodesfall)",
+                        MapElements
+                                .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
                                 .via(line -> {
                                     var fields = line.split(",");
-                                    var meldedatum = fields[1];
-                                    var altersgruppe = fields[2];
-                                    var anzahlTodesfall = Integer.parseInt(fields[3]);
-                                    return KV.of(meldedatum + "," + altersgruppe, anzahlTodesfall);
+                                    return KV.of(fields[1] + "," + fields[2], Integer.parseInt(fields[3]));
                                 }))
                 .apply("Sum the amount of cases", Sum.integersPerKey())
                 .apply("Convert key value pairs to strings",
                         MapElements.into(TypeDescriptors.strings()).via(element -> element.getKey() + "," + element.getValue()))
-                .apply("Transform to K: Altersgruppe,MeldeJahr,MeldeMonat V: (K: MeldeTag V: Sum(AnzahlTodesfall))",
-                        MapElements.into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.integers())))
+                .apply("Transform to: KV(1:Altersgruppe + , + MeldeJahr MeldeMonat, KV(MeldeTag, 2:AnzahlTodesfall)",
+                        MapElements
+                                .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.integers())))
                                 .via(line -> {
                                     var fields = line.split(",");
-                                    var meldedatum = fields[0];
-                                    var meldeJahrMonat = meldedatum.substring(0, 7);
-                                    var meldeTag = Integer.parseInt(meldedatum.substring(8, 10));
-                                    var altersgruppe = fields[1];
-                                    var anzahlTodesfall = Integer.parseInt(fields[2]);
-                                    return KV.of(altersgruppe + "," + meldeJahrMonat, KV.of(meldeTag, anzahlTodesfall));
+                                    return KV.of(
+                                            fields[1] + "," + fields[0].substring(0, 7),
+                                            KV.of(
+                                                    Integer.parseInt(fields[0].substring(8, 10)),
+                                                    Integer.parseInt(fields[2])
+                                            )
+                                    );
                                 }))
-                .apply("Group days per agegroup,year,month", GroupByKey.create())
-                .apply("Group on altersgruppe meldejahr",
-                        MapElements.into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.kvs(
-                                TypeDescriptors.integers(), TypeDescriptors.iterables(
-                                        TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.integers())
+                .apply("Group days per agegroup,year,month; value is an iterable of KV(day, deaths)", GroupByKey.create())
+                .apply("KV.of(0:ageGroup + , + year, KV.of(month, dayIterable))",
+                        MapElements
+                                .into(
+                                        TypeDescriptors.kvs(
+                                                TypeDescriptors.strings(),
+                                                TypeDescriptors.kvs(
+                                                        TypeDescriptors.integers(),
+                                                        TypeDescriptors.iterables(
+                                                                TypeDescriptors.kvs(
+                                                                        TypeDescriptors.integers(),
+                                                                        TypeDescriptors.integers()
+                                                                )
+                                                        )
+                                                )
+                                        )
                                 )
-                        )))
                                 .via(element -> {
-                                            var ageGroupYearMonth = element.getKey();
-                                            var ageGroupYearMonthSeperated = ageGroupYearMonth.split(",");
-                                            var ageGroup = ageGroupYearMonthSeperated[0];
-                                            var yearMonth = ageGroupYearMonthSeperated[1];
-                                            var year = yearMonth.substring(0, 4);
-                                            var month = Integer.parseInt(yearMonth.substring(5, 7));
-
-                                            var dayIterable = element.getValue();
-
-                                            return KV.of(ageGroup + "," + year, KV.of(month, dayIterable));
+                                            var ageGroupYearMonthSeperated = element.getKey().split(",");
+                                            return KV.of(
+                                                    ageGroupYearMonthSeperated[0] + "," + ageGroupYearMonthSeperated[1].substring(0, 4),
+                                                    KV.of(
+                                                            Integer.parseInt(ageGroupYearMonthSeperated[1].substring(5, 7)),
+                                                            element.getValue()
+                                                    )
+                                            );
                                         }
 
                                 )
@@ -85,8 +90,7 @@ public class GroupDeathsByAgeGroup {
                                     // arrays start at 0, months start at 1
                                     // get month sizes
                                     var monthSizes = new int[13];
-                                    for (var month :
-                                            monthsIterable) {
+                                    for (var month : monthsIterable) {
                                         var monthNumber = month.getKey();
                                         var daysIterable = month.getValue();
                                         monthSizes[monthNumber] = calculateMonthSize(daysIterable);
@@ -98,8 +102,7 @@ public class GroupDeathsByAgeGroup {
                                     var lastMonthCumsum = 0;
 
                                     for (int currentMonth = 1; currentMonth <= 12; currentMonth++) {
-                                        for (var month :
-                                                monthsIterable) {
+                                        for (var month : monthsIterable) {
                                             var monthNumber = month.getKey();
 
                                             if (monthNumber == currentMonth) {
@@ -142,7 +145,7 @@ public class GroupDeathsByAgeGroup {
                 )
 
                 .apply("Write to file",
-                        TextIO.write().to("pipeline_results/deaths_by_age_group.csv").withoutSharding());
+                        TextIO.write().to("pipeline_results/deaths_by_age_group_cumsum.csv").withoutSharding());
 
 
     }
