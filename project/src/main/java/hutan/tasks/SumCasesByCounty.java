@@ -15,7 +15,7 @@ public class SumCasesByCounty {
     public static PDone calculate(PCollection<String> input) {
 
         return input
-                .apply("Extract fields: KV(12:neuerFall, KV(2:bundesland, 6:anzahlFall)",
+                .apply("KV(12:neuerFall, KV(2:bundesland, 6:anzahlFall))",
                         MapElements
                                 .into(TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers())))
                                 .via(line -> {
@@ -23,14 +23,15 @@ public class SumCasesByCounty {
                                     return KV.of(Integer.parseInt(fields[12]), KV.of(fields[2], Integer.parseInt(fields[6])));
                                 }))
                 .apply("Remove non new cases", Filter.by(element -> element.getKey() >= 0))
-                .apply("Unnest KV -> Remove neuerFall field",
+                .apply("Remove neuerFall: KV(12:neuerFall, KV(2:bundesland, 6:anzahlFall) -> KV(2:bundesland, 6:anzahlFall)",
                         MapElements
                                 .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
                                 .via(element -> KV.of(
                                         element.getValue().getKey(),
                                         element.getValue().getValue())
                                 ))
-                .apply("Sum the amount of cases", Sum.integersPerKey())
+                .apply("Sum the amount of cases",
+                        Sum.integersPerKey())
                 .apply("Convert key value pairs to strings",
                         MapElements
                                 .into(TypeDescriptors.strings())
