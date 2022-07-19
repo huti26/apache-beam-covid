@@ -11,33 +11,35 @@ import java.io.Serializable;
 import java.util.Comparator;
 
 
-public class GroupDeathsByDay {
+public class FindTheTenDaysWithMostDeaths {
 
     public static PDone calculate(PCollection<String> input) {
 
         return input
-                .apply("Extract fields 8:meldedatum & 7:anzahlTodesfall as KV & 13:neuerTodesfall ",
-                        MapElements.into(TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers())))
+                .apply("Extract fields: KV(13:neuerTodesfall, KV(8:meldedatum, 7:anzahlTodesfall)",
+                        MapElements
+                                .into(TypeDescriptors.kvs(TypeDescriptors.integers(), TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers())))
                                 .via(line -> {
                                     var fields = line.split(",");
-                                    var meldedatum = fields[8];
-                                    var anzahlTodesfall = Integer.parseInt(fields[7]);
-                                    var neuerTodesfall = Integer.parseInt(fields[13]);
-                                    return KV.of(neuerTodesfall, KV.of(meldedatum, anzahlTodesfall));
+                                    return KV.of(Integer.parseInt(fields[13]), KV.of(fields[8], Integer.parseInt(fields[7])));
                                 }))
                 .apply("Remove non new cases", Filter.by(element -> element.getKey() >= 0))
                 .apply("Unnest KV -> Remove neuerFall field",
-                        MapElements.into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
+                        MapElements
+                                .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
                                 .via(element -> KV.of(element.getValue().getKey(), element.getValue().getValue())))
                 .apply("Sum the amount of cases", Sum.integersPerKey())
                 .apply(Top.of(10, new CompareCount()))
                 .apply("Extract key value pairs",
-                        FlatMapElements.into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
+                        FlatMapElements
+                                .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.integers()))
                                 .via(list -> list))
                 .apply("Convert key value pairs to strings",
-                        MapElements.into(TypeDescriptors.strings()).via(element -> element.getKey() + ";" + element.getValue()))
+                        MapElements
+                                .into(TypeDescriptors.strings())
+                                .via(element -> element.getKey() + ";" + element.getValue()))
                 .apply("Write to file",
-                        TextIO.write().to("pipeline_results/deaths_per_day.csv").withoutSharding());
+                        TextIO.write().to("pipeline_results/10_days_with_most_deaths.csv").withoutSharding());
 
     }
 
