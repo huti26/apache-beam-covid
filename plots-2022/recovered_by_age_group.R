@@ -55,7 +55,11 @@ g <- ggplot(data, aes(x=Datum,y=Genesungen,fill=Altersgruppe)) +
   ) +
   guides(
     fill = "none"
-  )
+  )+
+  theme(
+    text = element_text(size = 14),
+    plot.margin = margin(t = 1, r = 2, b = 1, l = 1, unit = "cm"
+    ))
 
 
 print(g)
@@ -75,7 +79,13 @@ g <- ggplot(data, aes(x=Datum,y=Genesungen,fill=Altersgruppe)) +
   ) +
   guides(
     fill = "none"
-  )
+  ) +
+  theme(
+    text = element_text(size = 14),
+    plot.margin = margin(t = 1, r = 2, b = 1, l = 1, unit = "cm"
+    ))
+
+
 
 
 print(g)
