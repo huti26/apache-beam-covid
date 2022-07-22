@@ -1,4 +1,4 @@
-# Apache Beam Covid Analysation
+# Apache Beam Covid Analysis
 
 Educational repository to practise Data Pipelines with Apache Beam. The current implementation is run locally and takes about 30 seconds to process all Pipelines. If desired, the same code could be deployed to the cloud on for example a Spark cluster.
 
